@@ -1,17 +1,30 @@
-﻿# Security Policy
+# Política de segurança
 
-## VersÃµes suportadas
+## Versões com suporte
 
-| VersÃ£o | Suporte          |
-|--------|------------------|
-| 1.0.x  | Ativo            |
+| Versão | Suporte |
+|--------|---------|
+| **1.0.x** | Ativo — correções de segurança |
+| < 1.0 | Sem suporte |
 
-## Reportar vulnerabilidade
+## Reportar uma vulnerabilidade
 
-**NÃ£o** abra issue pÃºblica para falhas de seguranÃ§a.
+**Não** abra issues públicas para vulnerabilidades.
 
-Envie detalhes para o mantenedor via GitHub Security Advisories ou mensagem privada.
+1. Envie descrição detalhada para o mantenedor via GitHub Security Advisories ou contato privado do repositório [ultra-low-latency-order-book-engine](https://github.com/SrSatriano/ultra-low-latency-order-book-engine).
+2. Inclua passos para reproduzir, impacto e versão afetada.
+3. Aguarde confirmação antes de divulgação coordenada.
 
-Inclua: impacto, passos para reproduzir, versÃ£o/commit, sugestÃ£o de mitigaÃ§Ã£o.
+Objetivo de resposta inicial: **72 horas úteis**.
 
-Tempo de resposta alvo: 72h Ãºteis.
+## Boas práticas para usuários
+
+- Rotacione chaves de API periodicamente.
+- Use `.env` local e nunca faça commit de segredos.
+- Em projetos Web3, valide contratos em testnet antes de mainnet.
+- Em ferramentas educacionais (ex.: MEV), **não** use com fundos reais em mainnet.
+
+## Dependências
+
+- Execute auditoria do ecossistema (`npm audit`, `pip audit`, `cargo audit`) antes de releases.
+- Atualize dependências com CVE conhecidos em patches 1.0.x.

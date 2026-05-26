@@ -1,20 +1,39 @@
-﻿# Contributing
+# Guia de contribuição
 
-Obrigado por contribuir com este projeto.
+Obrigado por considerar uma contribuição para **Ultra-Low Latency Order Book Engine**.
 
-## Fluxo
+## Como começar
 
-1. Fork e branch: `git checkout -b feature/minha-mudanca`
-2. Commits convencionais: `feat:`, `fix:`, `docs:`, `perf:`
-3. Testes: execute a suÃ­te do README antes do PR
-4. Abra PR com descriÃ§Ã£o, screenshots (se UI) e checklist
+1. Faça um fork do repositório [ultra-low-latency-order-book-engine](https://github.com/SrSatriano/ultra-low-latency-order-book-engine).
+2. Crie uma branch: `git checkout -b feat/minha-melhoria`
+3. Instale dependências conforme o [README](README.md).
+4. Execute os testes: `ctest --test-dir build`
+5. Abra um Pull Request descrevendo **o quê** e **por quê**.
 
-## PadrÃµes
+## Padrões de código
 
-- CÃ³digo autoexplicativo; comentÃ¡rios sÃ³ para invariantes nÃ£o Ã³bvios
-- Sem segredos em commits (use `.env` local)
-- Mantenha benchmarks reproduzÃ­veis com flags documentadas
+- Código claro e autoexplicativo; comentários apenas para invariantes não óbvios.
+- Commits no estilo [Conventional Commits](https://www.conventionalcommits.org/): `feat:`, `fix:`, `docs:`, `perf:`, `test:`.
+- Sem segredos, tokens ou `.env` com credenciais reais.
+- Mantenha benchmarks **reproduzíveis** com flags documentadas.
 
-## Code of Conduct
+## Pull requests
 
-Comportamento respeitoso e foco tÃ©cnico nas revisÃµes.
+Inclua:
+
+- Resumo das mudanças
+- Como testou (`ctest --test-dir build`)
+- Screenshots ou gravações se houver interface visual
+- Checklist de breaking changes (se houver)
+
+## Documentação
+
+Alterações de comportamento devem atualizar:
+
+- `README.md`
+- Arquivos em `docs/` quando afetar deploy ou arquitetura
+- `CHANGELOG.md` na seção *Unreleased* ou nova versão
+
+## Código de conduta
+
+Mantenha discussões respeitosas, técnicas e focadas no mérito da proposta.
