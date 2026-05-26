@@ -1,0 +1,11 @@
+server:
+  grpc_port: 50051
+  zmq_pub_endpoint: "tcp://127.0.0.1:5555"
+
+matching:
+  shards: 8
+  snapshot_interval_ms: 100
+
+symbols:
+  - BTC-USD
+  - ETH-USD

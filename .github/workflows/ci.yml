@@ -1,0 +1,19 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_BENCHMARKS=OFF
+      - name: Build
+        run: cmake --build build --parallel
+      - name: Test
+        run: |
+          cmake --build build --target orderbook_test 2>/dev/null || c++ -std=c++20 -I include src/core/order_book.cpp tests/order_book_test.cpp -o test && ./test

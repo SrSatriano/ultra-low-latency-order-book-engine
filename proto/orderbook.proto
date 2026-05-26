@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+package orderbook.v1;
+
+service OrderBookService {
+  rpc SubmitOrder(OrderRequest) returns (OrderAck);
+  rpc CancelOrder(CancelRequest) returns (OrderAck);
+  rpc GetSnapshot(SnapshotRequest) returns (BookSnapshot);
+}
+
+message OrderRequest {
+  string symbol = 1;
+  string client_order_id = 2;
+  Side side = 3;
+  OrderType type = 4;
+  uint64 price_ticks = 5;
+  uint64 quantity = 6;
+}
+
+message CancelRequest {
+  string symbol = 1;
+  uint64 order_id = 2;
+}
+
+message OrderAck {
+  uint64 order_id = 1;
+  AckStatus status = 2;
+  uint64 timestamp_ns = 3;
+}
+
+message SnapshotRequest {
+  string symbol = 1;
+  uint32 depth = 2;
+}
+
+message BookSnapshot {
+  string symbol = 1;
+  repeated PriceLevel bids = 2;
+  repeated PriceLevel asks = 3;
+}
+
+message PriceLevel {
+  uint64 price_ticks = 1;
+  uint64 quantity = 2;
+}
+
+enum Side { SIDE_UNSPECIFIED = 0; BUY = 1; SELL = 2; }
+enum OrderType { TYPE_UNSPECIFIED = 0; LIMIT = 1; MARKET = 2; IOC = 3; FOK = 4; }
+enum AckStatus { ACK_UNSPECIFIED = 0; ACCEPTED = 1; REJECTED = 2; }
