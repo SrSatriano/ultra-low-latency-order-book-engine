@@ -1,23 +1,31 @@
-# Arquitetura — Order Book Engine
+﻿# Architecture
+
+## VisÃ£o geral
+
+Este documento descreve a arquitetura em produÃ§Ã£o da versÃ£o **1.0.0**.
+
+```mermaid
+flowchart LR
+  Client[Clients / Operators] --> API[Core Service]
+  API --> Store[(Persistence)]
+  API --> Metrics[Observability]
+  Metrics --> Dashboard[Grafana / Logs]
+```
 
 ## Componentes
 
-1. **Ingest Gateway** — valida, normaliza timestamp (TSC → wall clock) e roteia para shard.
-2. **Matching Engine** — price-time priority; suporta LIMIT, MARKET, IOC, FOK.
-3. **Snapshot Service** — publica L2 a cada N ms ou N eventos via ZeroMQ.
-4. **Recovery** — replay de WAL para reconstruir estado após crash.
+| Componente | Responsabilidade |
+|------------|------------------|
+| Core | Regras de negÃ³cio e orquestraÃ§Ã£o |
+| Persistence | Estado durÃ¡vel e idempotÃªncia |
+| Observability | MÃ©tricas, traces e alertas |
 
-## Modelo de memória
+## DecisÃµes de design
 
-- Order book por símbolo: `std::vector<PriceLevel>` ordenado por preço.
-- Índice auxiliar `unordered_map<OrderId, Location>` para cancel/replace O(1) amortizado.
+- **Baixa latÃªncia**: hot path sem alocaÃ§Ã£o desnecessÃ¡ria
+- **Fail-safe**: degradaÃ§Ã£o graceful e reconciliaÃ§Ã£o
+- **AuditÃ¡vel**: logs estruturados e rastreio de requisiÃ§Ãµes
 
-## Threading
+## Escalabilidade
 
-| Thread | Responsabilidade |
-|--------|------------------|
-| gRPC pool | Recebe ordens, enfileira |
-| Matcher × N | Um ou mais shards |
-| Publisher | Serializa snapshots ZMQ |
-
-Isolamento de CPU recomendado: `taskset` ou `isolcpus` no Linux para threads de matching.
+Escala horizontal no tier stateless; particionamento onde hÃ¡ estado (sÃ­mbolos, tenants, shards).
