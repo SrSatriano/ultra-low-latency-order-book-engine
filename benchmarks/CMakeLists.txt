@@ -1,0 +1,3 @@
+add_executable(bench_pricing bench_pricing.cpp)
+target_link_libraries(bench_throughput PRIVATE orderbook_core)
+target_include_directories(bench_throughput PRIVATE ${CMAKE_SOURCE_DIR}/include)
