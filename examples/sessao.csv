@@ -1,0 +1,17 @@
+# Sessão de exemplo: monta o livro, agride, cancela e modifica.
+A,1,S,LMT,10100,50
+A,2,S,LMT,10100,30
+A,3,S,LMT,10200,40
+A,4,B,LMT,9900,25
+A,5,B,LMT,9800,60
+# compra agressiva varre o nível 101,00 (FIFO: 1 antes de 2)
+A,6,B,LMT,10100,60
+# post-only que cruzaria é rejeitada
+A,7,S,POST,9900,10
+# FOK sem liquidez suficiente é rejeitada; com liquidez executa inteira
+A,8,S,FOK,9900,100
+A,9,S,FOK,9800,70
+C,3
+C,3
+M,5,40,9850
+A,10,S,MKT,0,10

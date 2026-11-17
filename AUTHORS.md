@@ -6,7 +6,7 @@
 
 ## Projeto
 
-**Ultra-Low Latency Order Book Engine** (1.0.0)
+**Ultra-Low Latency Order Book Engine** (1.1.0)
 
 - Repositório: [ultra-low-latency-order-book-engine](https://github.com/SrSatriano/ultra-low-latency-order-book-engine)
 - Licença: [MIT](../LICENSE)

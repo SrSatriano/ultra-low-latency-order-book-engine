@@ -1,0 +1,11 @@
+T,6,1,B,10100,50
+T,6,2,B,10100,10
+R,7,post_only_would_cross
+R,8,fok_not_fillable
+T,9,4,S,9900,25
+T,9,5,S,9800,45
+R,3,unknown_order
+T,10,5,S,9850,10
+# livro: 2 ordens
+# ASK      10100          20  (1)
+# BID       9850          30  (1)

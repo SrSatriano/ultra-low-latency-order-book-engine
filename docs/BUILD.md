@@ -1,22 +1,24 @@
-# Guia de compilação
+# Build
 
-## Requisitos
+Requisitos: CMake 3.20+ e um compilador C++20 (GCC 11+, Clang 14+ ou MSVC 2022).
 
-- GCC 12+ ou Clang 16+
-- CMake 3.20+
-- libgrpc++, protobuf, libzmq3-dev
+```bash
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j
+ctest --test-dir build --output-on-failure
+```
 
-## Windows (MSVC)
+Com sanitizers (GCC/Clang):
+
+```bash
+cmake -S . -B build-asan -DCMAKE_BUILD_TYPE=Debug -DOB_SANITIZE=ON
+cmake --build build-asan -j && ctest --test-dir build-asan
+```
+
+Windows (Developer PowerShell):
 
 ```powershell
-cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake -S . -B build
 cmake --build build --config Release
+ctest --test-dir build -C Release
 ```
-
-## Flags recomendadas (GCC)
-
-```
--O3 -march=native -flto -DNDEBUG -fno-rtti
-```
-
-Desabilitar exceções no hot path reduz código gerado; use `expected` ou códigos de erro.

@@ -1,215 +1,99 @@
-<div align="center">
-
 # Ultra-Low Latency Order Book Engine
 
+[![CI](https://github.com/SrSatriano/ultra-low-latency-order-book-engine/actions/workflows/ci.yml/badge.svg)](https://github.com/SrSatriano/ultra-low-latency-order-book-engine/actions/workflows/ci.yml)
+![C++20](https://img.shields.io/badge/C%2B%2B-20-00599C?logo=cplusplus)
+![licença](https://img.shields.io/badge/licen%C3%A7a-MIT-22c55e)
 
-<p><strong>Motor de livro de ofertas de ultra baixa latência</strong></p>
+Motor de matching de livro de ofertas em C++20, com prioridade preço-tempo, cinco tipos de ordem, replay de sessões em CSV e benchmark de latência por operação. Sem dependências além da biblioteca padrão.
 
-<p>
-  <a href="https://github.com/SrSatriano/ultra-low-latency-order-book-engine"><img src="https://img.shields.io/badge/GitHub-ultra-low-latency-order-book-engine-24292e?style=for-the-badge&logo=github&logoColor=white" alt="GitHub" /></a>
-  <a href="https://srsatriano.github.io/portfolio-matheus-satriano/"><img src="https://img.shields.io/badge/Portfólio-web-0891b2?style=for-the-badge" alt="Portfólio" /></a>
-</p>
+## O que ele faz
 
-<p>
-  <img src="https://img.shields.io/badge/versão-1.0.0-0ea5e9?style=flat-square" alt="versão" />
-  <img src="https://img.shields.io/badge/Tier-1-8b5cf6?style=flat-square" alt="tier" />
-  <img src="https://img.shields.io/badge/demo-pronto-22c55e?style=flat-square" alt="demo" />
-  <img src="https://img.shields.io/badge/licença-MIT-22c55e?style=flat-square" alt="licença" />
-  <img src="https://img.shields.io/badge/idioma-pt--BR-blue?style=flat-square" alt="idioma" />
-  <img src="https://img.shields.io/badge/CI-GitHub_Actions-8b5cf6?style=flat-square" alt="ci" />
-</p>
+- **Prioridade preço-tempo:** melhor preço primeiro e, no mesmo preço, a ordem mais antiga. O agressor sempre executa ao preço do maker.
+- **Tipos de ordem:**
+  - **Limit:** o que não executar descansa no livro.
+  - **Market:** executa contra o que houver.
+  - **IOC:** executa até o preço-limite e descarta o resto.
+  - **FOK:** executa tudo ou nada, e a liquidez é conferida antes de tocar no livro.
+  - **Post-only:** é rejeitada se fosse cruzar o livro.
+- **Cancelamento O(1):** um índice por id aponta direto para o nó da fila do nível.
+- **Modificação com regra de bolsa:** reduzir a quantidade mantém a posição na fila; mudar o preço ou aumentar a quantidade manda a ordem para o fim.
+- **Consultas:** melhor compra e venda, profundidade agregada por nível (com nº de ordens) e volume em um preço.
+- **Validações:** id duplicado, quantidade zero e preço inválido viram rejeição, nunca exceção.
 
-<p><strong>Motor de matching em C++ com gRPC e ZeroMQ para simulação de exchange em microssegundos.</strong></p>
+## Números
 
-<p>
-  Autor: <a href="https://github.com/SrSatriano">@SrSatriano</a> ·
-  Release <strong>1.0.0</strong> (2026-03-26)
-</p>
+Benchmark com 2 milhões de operações sintéticas (65% limit perto do topo, 25% cancelamentos, 10% agressões IOC), em um núcleo, build Release com GCC 13:
 
-</div>
-
----
-
-## Índice
-
-1. [Visão geral](#visão-geral)
-2. [Problema e solução](#problema-e-solução)
-3. [Para quem é](#para-quem-é)
-4. [Casos de uso](#casos-de-uso)
-5. [Funcionalidades](#funcionalidades)
-6. [Stack tecnológica](#stack-tecnológica)
-7. [Arquitetura](#arquitetura)
-8. [Estrutura do repositório](#estrutura-do-repositório)
-9. [Pré-requisitos](#pré-requisitos)
-10. [Instalação e execução](#instalação-e-execução)
-11. [Configuração](#configuração)
-12. [Testes](#testes)
-13. [Performance](#performance)
-14. [Deploy e operação](#deploy-e-operação)
-15. [Limitações conhecidas](#limitações-conhecidas)
-16. [Roadmap](#roadmap)
-17. [Documentação complementar](#documentação-complementar)
-18. [Segurança e licença](#segurança-e-licença)
-
----
-
-## Visão geral
-
-Este repositório faz parte do **portfólio de engenharia** mantido por [@SrSatriano](https://github.com/SrSatriano). A versão **1.0.0** entrega implementação do núcleo do produto, testes automatizados, pipeline de integração contínua e documentação operacional em **português brasileiro**.
-
-O objetivo é permitir que você clone, execute e evolua o projeto com clareza — do desenvolvimento local ao deploy em produção.
-
-## Problema e solução
-
-| | |
+| Métrica | Valor |
 |---|---|
-| **Problema** | Backtests e simuladores genéricos não reproduzem a latência nem a semântica FIFO de um matching real. |
-| **Solução** | Engine dedicado com sharding por símbolo, filas lock-free e benchmarks reproduzíveis. |
+| Vazão | ~2,3 milhões de ops/s |
+| Latência p50 | ~200 ns |
+| Latência p99 | ~1,5 µs |
+| Latência p99,9 | ~5 µs |
 
-## Para quem é
+A latência inclui a leitura do relógio em cada operação. Rode `./build/bench_orderbook` para medir na sua máquina.
 
-Desenvolvedores quant/HFT, pesquisadores de microestrutura e equipes de infraestrutura de mercado.
-
-## Casos de uso
-
-- Simulação de exchange local
-- Benchmark de estratégias de market making
-- Replay determinístico via WAL
-
-## Funcionalidades
-
-- [x] Matching FIFO por preço com sharding por símbolo
-- [x] Filas lock-free SPSC entre ingestão e motor
-- [x] Snapshots de profundidade L2 via ZeroMQ pub/sub
-- [x] Benchmarks de throughput acima de 2M ordens/s (8 shards)
-- [x] Recuperação via WAL e replay determinístico
-- [x] Suporte a ordens limit, market e IOC
-
-## Stack tecnológica
-
-| Camada | Tecnologias |
-|--------|-------------|
-| **Principal** | C++20, gRPC, ZeroMQ, CMake |
-
-## Arquitetura
-
-```mermaid
-flowchart LR
-  subgraph Entrada
-    GW[Gateway gRPC / ZeroMQ]
-  end
-  subgraph Motor
-    SH[Shard por símbolo]
-    OB[Livro de ofertas L2]
-    MT[Matching FIFO]
-  end
-  subgraph Saída
-    WAL[(WAL / replay)]
-    PUB[Pub L2 snapshots]
-  end
-  GW --> SH --> OB --> MT
-  MT --> WAL
-  OB --> PUB
-```
-
-Detalhamento de componentes, fluxos de dados e decisões de design: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
-
-## Estrutura do repositório
-
-| Caminho | Descrição |
-|---------|-----------|
-| `include/orderbook/` | Cabeçalhos públicos do livro e matching |
-| `src/core/` | Implementação do motor |
-| `tests/` | Testes unitários (GoogleTest) |
-| `benchmarks/` | Benchmarks de latência e throughput |
-| `scripts/build.ps1` | Build auxiliar no Windows |
-
-## Pré-requisitos
-
-CMake 3.20+, compilador C++20 (MSVC, GCC ou Clang), opcional: vcpkg para dependências.
-
-## Instalação e execução
+## Como usar
 
 ```bash
-git clone https://github.com/SrSatriano/ultra-low-latency-order-book-engine.git
-cd ultra-low-latency-order-book-engine
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j
+ctest --test-dir build --output-on-failure
+./build/bench_orderbook 2000000
+./build/obctl examples/sessao.csv
 ```
 
-```bash
-git clone https://github.com/SrSatriano/ultra-low-latency-order-book-engine.git
-cd ultra-low-latency-order-book-engine
-cmake -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build
-ctest --test-dir build
+### Replay em CSV
+
+`obctl` lê um fluxo de ordens e imprime cada execução e rejeição, e o topo do livro no fim:
+
+```
+A,<id>,<B|S>,<LMT|MKT|IOC|FOK|POST>,<preço em ticks>,<qtd>
+C,<id>
+M,<id>,<nova qtd>[,<novo preço>]
 ```
 
-## Configuração
+```
+$ ./build/obctl examples/sessao.csv
+T,6,1,B,10100,50          # taker 6 comprou 50 do maker 1 a 101,00
+T,6,2,B,10100,10
+R,7,post_only_would_cross
+R,8,fok_not_fillable
+T,9,4,S,9900,25
+T,9,5,S,9800,45
+...
+# ASK      10100          20  (1)
+# BID       9850          30  (1)
+```
 
-| Variável | Descrição | Exemplo |
-|----------|-----------|--------|
-| `ZMQ_PUB_ENDPOINT` | Endpoint de publicação L2 | `tcp://127.0.0.1:5556` |
-| `GRPC_BIND` | Endereço do servidor gRPC | `0.0.0.0:50051` |
-| `SHARD_COUNT` | Número de shards por símbolo | `8` |
+### Como biblioteca
 
-> **Importante:** nunca faça commit de arquivos `.env` com segredos reais. Use `.env.example` como referência.
+```cpp
+#include "orderbook/order_book.hpp"
+
+ob::OrderBook book([](const ob::Trade& t) { /* publica a execução */ });
+book.add({1, ob::Side::Sell, ob::OrderType::Limit, 10100, 50});
+auto r = book.add({2, ob::Side::Buy, ob::OrderType::Ioc, 10100, 80});
+// r.filled == 50, r.resting == 0
+```
 
 ## Testes
 
-Execute a suíte de testes antes de abrir pull requests:
+- 11 cenários de regra de negócio: FIFO, varredura de níveis, IOC, FOK, post-only, cancelamento no meio da fila, prioridade na modificação e validações.
+- Um **teste de propriedade** que roda 20 mil operações aleatórias contra um modelo de referência ingênuo e exige as mesmas execuções, na mesma ordem, além de nunca deixar o livro cruzado.
+- Um **teste golden** do `obctl`, que compara a saída do replay com `examples/sessao.expected`.
+- O CI compila com GCC e Clang (com AddressSanitizer e UBSan) e com MSVC no Windows.
 
-```bash
-ctest --test-dir build
-```
+## Arquitetura
 
-A pipeline [`.github/workflows/ci.yml`](.github/workflows/ci.yml) repete build e testes em cada push para `main`.
+Veja [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
-## Performance
+## Limitações
 
-| Modo | p50 ingest→ACK | p99 | Throughput |
-|------|----------------|-----|------------|
-| Release -O3 | 4,2 µs | 12 µs | 2,1M ord/s |
+- Thread única por livro. O modelo pensado é um livro por instrumento, cada um na sua thread.
+- Não há rede, persistência nem protocolo de bolsa (FIX/ITCH). A entrada é a API C++ ou o replay CSV.
+- `std::list` e `std::map` simplificam o código, mas alocam a cada inserção. Um pool de nós e níveis em array são o próximo passo para cortar a cauda de latência.
 
-Metodologia, hardware de referência e flags de compilação: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+## Autor
 
-## Deploy e operação
-
-| Guia | Conteúdo |
-|------|----------|
-| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | Homologação, produção e rollback |
-| [docs/OPERATIONS.md](docs/OPERATIONS.md) | Monitoramento, alertas e incidentes |
-
-## Limitações conhecidas
-
-- Integração FIX real depende de conector externo
-- WAL completo em disco é opcional na v1.0
-
-## Roadmap
-
-- Persistência RocksDB
-- Métricas Prometheus nativas
-
-## Documentação complementar
-
-| Documento | Descrição |
-|-----------|-----------|
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Arquitetura e decisões técnicas |
-| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | Deploy passo a passo |
-| [docs/OPERATIONS.md](docs/OPERATIONS.md) | Runbook operacional |
-| [CONTRIBUTING.md](CONTRIBUTING.md) | Como contribuir |
-| [CHANGELOG.md](CHANGELOG.md) | Histórico de versões |
-| [SECURITY.md](SECURITY.md) | Política de segurança |
-| [AUTHORS.md](AUTHORS.md) | Créditos |
-
-## Segurança e licença
-
-- Dependências revisadas na release **1.0.0**
-- Vulnerabilidades: siga [SECURITY.md](SECURITY.md)
-- Licença: [MIT](LICENSE) © SrSatriano 2026
-
----
-
-<p align="center">
-  <a href="https://srsatriano.github.io/portfolio-matheus-satriano/">Portfólio completo</a> ·
-  <a href="https://github.com/SrSatriano">@SrSatriano</a> ·
-  <a href="https://github.com/SrSatriano/ultra-low-latency-order-book-engine">Este repositório</a>
-</p>
+Matheus Rodrigues Satriano — [github.com/SrSatriano](https://github.com/SrSatriano)

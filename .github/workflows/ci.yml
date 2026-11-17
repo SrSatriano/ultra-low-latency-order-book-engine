@@ -1,19 +1,30 @@
 name: CI
-
 on:
   push:
     branches: [main, master]
   pull_request:
-
 jobs:
-  build:
+  linux:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        compiler: [g++, clang++]
     steps:
       - uses: actions/checkout@v4
-      - name: Configure
-        run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_BENCHMARKS=OFF
-      - name: Build
-        run: cmake --build build --parallel
-      - name: Test
+      - name: Testes com sanitizers
         run: |
-          cmake --build build --target orderbook_test 2>/dev/null || c++ -std=c++20 -I include src/core/order_book.cpp tests/order_book_test.cpp -o test && ./test
+          cmake -S . -B build-asan -DCMAKE_BUILD_TYPE=Debug -DOB_SANITIZE=ON -DCMAKE_CXX_COMPILER=${{ matrix.compiler }}
+          cmake --build build-asan -j
+          ctest --test-dir build-asan --output-on-failure
+      - name: Benchmark (Release)
+        run: |
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=${{ matrix.compiler }}
+          cmake --build build -j
+          ./build/bench_orderbook 1000000
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: cmake -S . -B build
+      - run: cmake --build build --config Release
+      - run: ctest --test-dir build -C Release --output-on-failure

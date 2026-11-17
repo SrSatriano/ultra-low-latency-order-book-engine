@@ -1,0 +1,11 @@
+execute_process(COMMAND ${OBCTL} ${INPUT} OUTPUT_VARIABLE out RESULT_VARIABLE rc)
+if(NOT rc EQUAL 0)
+  message(FATAL_ERROR "obctl terminou com código ${rc}")
+endif()
+file(READ ${EXPECTED} expected)
+# Normaliza fim de linha (CRLF no Windows).
+string(REPLACE "\r" "" out "${out}")
+string(REPLACE "\r" "" expected "${expected}")
+if(NOT out STREQUAL expected)
+  message(FATAL_ERROR "saída diferente do esperado:\n${out}")
+endif()
